@@ -1,0 +1,29 @@
+pipeline {
+  agent {
+    // this image provides everything needed to run Cypress
+    docker {
+      image 'cypress/base:18.14.1'
+    }
+  }
+  parameters {
+    string(name:'SPEC', defaultValue:"PF", description: "Enter thr script path you want to  execute")
+    choice(name:'Browser', choices: ['chrome', 'edge','electron'], description: "Choice your browser")
+  }
+
+  stages {
+    stage('build and test') {
+      environment {
+        // we will be recording test results on Cypress Cloud
+        // to record we need to set an environment variable
+        // we can load the record key variable from credentials store
+        // see https://jenkins.io/doc/book/using/using-credentials/
+        CYPRESS_RECORD_KEY = credentials('cypress-example-kitchensink-record-key')
+      }
+
+      steps {
+        sh 'npm ci'
+        sh "npx cypress run "
+      }
+    }
+  }
+}
